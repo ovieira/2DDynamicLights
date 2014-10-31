@@ -6,26 +6,18 @@ public class PointLightScript : MonoBehaviour
 {
 /**************************VARIABLEs*********************************/
 	Quaternion fixedRotation;
-	GameObject target;
+    //GameObject target;
 	List<LineRenderer> lightRays;
 	public int rays_no;
 	public float lightHeight;
 	public float lightDist;
-	public enum LightColor
-	{
-		NONE,
-		RED,
-		GREEN
-	}
 
-    public Color color0, color1;
+    public Color color0, color1 ;
 
 	public Material line_mat;
-	[SerializeField]
-	protected LightColor
-		currentColor;
-	public float alph = 1f;
 
+	public float alph = 1f;
+ 
 	public float lineWidth;
     private bool canIlluminate = true;
 
@@ -45,7 +37,7 @@ public class PointLightScript : MonoBehaviour
 		lightRays = new List<LineRenderer>();
 		addLineRenderers();
 		setColor();
-		target = GameObject.FindGameObjectWithTag("Player");
+		//target = GameObject.FindGameObjectWithTag("Player");
 	}
 	/*creates all the light renderers and sets them as children of the player (any parameter like tag, layer, etc, should be added here)*/
 	private void addLineRenderers()
@@ -98,19 +90,15 @@ public class PointLightScript : MonoBehaviour
 /***********************************************************/
 
 	// Update is called once per frame
-	void Update()
-	{
-		transform.position = target.transform.position + Vector3.up * lightHeight;
-		StartCoroutine("Illuminate");
+    void Update() {
+        //transform.position = target.transform.position + Vector3.up * lightHeight;
 
-        //if (Input.GetKeyDown("e"))
-        //{
-        //    if (hasGreen)
-        //    {
-        //        currentColor = LightColor.GREEN;
-        //        setColor();     
-        //    }
-        //}
+        if (Input.GetKeyDown("c")) {
+            collideLight ^= true;
+        }
+
+        StartCoroutine("Illuminate");
+
         //if (Input.GetKeyDown("q"))
         //{
         //    if (hasRed)
@@ -168,13 +156,15 @@ public class PointLightScript : MonoBehaviour
         }
         else {
             Vector3 firstRay = transform.up;
-
-            ArrayList hitObjs = new ArrayList();
+            Dictionary<GameObject, int> sprites_dictionary = new Dictionary<GameObject, int>();
+            //ArrayList hitObjs = new ArrayList();
             for (int i = 0; i < lightRays.Count; i++) {
+
+                //Fase1: Set Up standart light ray distance and color
+
                 LineRenderer lightRay = lightRays[i];
                 lightRay.SetVertexCount(2);
                 Vector3 dest = RotatePointAroundPivot(firstRay, Vector3.zero, (360.0f / rays_no) * i);
-                RaycastHit2D hit;
                 lightRay.SetPosition(0, transform.position);
                 lightRay.SetPosition(1, transform.position + lightDist * dest);
                 lightRay.SetColors(color0, color1);
@@ -182,40 +172,62 @@ public class PointLightScript : MonoBehaviour
                 LayerMask l = defineLayerMask();
 
                 //hitVec = Physics2D.RaycastAll(transform.position, dest, lightDist, l);
-                hit = Physics2D.Raycast(transform.position, dest, lightDist, l);
+                
+                //Fase 2: Check light colisions and calculate each new light ray distance
 
-                if (hit.collider != null) {
-                    lightRay.SetPosition(1, hit.point);
-                    //print(hit.collider.gameObject.name);
-                    lightRay.SetColors(color0, calculateAlpha(hit.point));
-
-                }
-                else {
-                    //lightRay.SetColors(color0, color1);
-                    //lightRay.SetColors(getCurrentColor(), calculateAlpha(hit.point));
-                    lightRay.SetPosition(1, transform.position + lightDist * dest);
+                if (collideLight) {
+                    RecalculateLightRays(lightRay, dest, l,sprites_dictionary);
                 }
             }
+
+            if (collideLight) {
+                spritesIlluminate(sprites_dictionary);
+            }
+
         }
         //lightRay.enabled = false;
         yield return null;
     }
 
+    private void spritesIlluminate(Dictionary<GameObject, int> sprites_dictionary) {
+        foreach (KeyValuePair<GameObject, int> entry in sprites_dictionary) {
+            if (entry.Key.GetComponent<SpriteIllumination>() != null) {
+                entry.Key.SendMessage("SetIllumination", entry.Value);                
+            }
+        }
+    }
+
+    private void RecalculateLightRays(LineRenderer lightRay, Vector3 dest, LayerMask l,Dictionary<GameObject, int> dictionary) {
+        RaycastHit2D hit;
+
+        hit = Physics2D.Raycast(transform.position, dest, lightDist, l);
+
+        if (hit.collider != null) {
+            lightRay.SetPosition(1, hit.point);
+            //print(hit.collider.gameObject.name);
+            lightRay.SetColors(color0, calculateAlpha(hit.point));
+            AddToHash(dictionary, hit.collider.gameObject);
+        }
+        else {
+            //lightRay.SetColors(color0, color1);
+            //lightRay.SetColors(getCurrentColor(), calculateAlpha(hit.point));
+            lightRay.SetPosition(1, transform.position + lightDist * dest);
+        }
+    }
+
+    private void AddToHash(Dictionary<GameObject, int> dictionary, GameObject gameObject) {
+        if (dictionary.ContainsKey(gameObject)) {
+            dictionary[gameObject]++;
+        }
+        else {
+            dictionary.Add(gameObject, 1);
+        }
+    }
+
 	/*function used to define with which layers should the line renderer rays collide*/
 	LayerMask defineLayerMask()
 	{
-		return ~((1 << LayerMask.NameToLayer("Player")) | (1 << LayerMask.NameToLayer("IgnoreLight")));
-		/*switch (currentColor) {
-		case LightColor.RED:
-			return (1 << LayerMask.NameToLayer ("Wall")) | (1 << LayerMask.NameToLayer ("GreenElement"));
-			break;
-		case LightColor.GREEN:
-			return (1 << LayerMask.NameToLayer ("Wall")) | (1 << LayerMask.NameToLayer ("RedElement"));
-			break;
-		default:
-			return (1 << LayerMask.NameToLayer ("Wall"));
-			break;
-		}*/
+        return ~(1 << LayerMask.NameToLayer("LightSource"));
 	}
     
 	/*no idea*/
@@ -227,13 +239,7 @@ public class PointLightScript : MonoBehaviour
 		return dir; // return it
 	}
 
-	public LightColor CurrentColor
-	{
-		get
-		{
-			return currentColor;
-		}
-	}
+
 
     //Color getCurrentColor()
     //{
@@ -284,4 +290,6 @@ public class PointLightScript : MonoBehaviour
 	{
 		return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
 	}
+
+    public bool collideLight { get; set; }
 }
