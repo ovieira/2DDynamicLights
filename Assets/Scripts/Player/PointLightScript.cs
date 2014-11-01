@@ -2,94 +2,90 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class PointLightScript : MonoBehaviour
-{
-/**************************VARIABLEs*********************************/
-	Quaternion fixedRotation;
+public class PointLightScript : MonoBehaviour {
+    /**************************VARIABLEs*********************************/
+    Quaternion fixedRotation;
     //GameObject target;
-	List<LineRenderer> lightRays;
-	public int rays_no;
-	public float lightHeight;
-	public float lightDist;
+    List<LineRenderer> lightRays;
+    public int rays_no;
+    public float lightHeight;
+    public float lightDist;
 
-    public Color color0, color1 ;
+    public Color LightColor;
+    private Color AlphaToZero = new Color(1,1,1,0);
 
-	public Material line_mat;
+    public Material line_mat;
 
-	public float alph = 1f;
- 
-	public float lineWidth;
+    public float alph = 1f;
+
+    public float lineWidth;
     private bool canIlluminate = true;
+    public bool collideLight;
 
-/***********************************************************/
+    /***********************************************************/
 
-/**************************SETUP*********************************/
+    /**************************SETUP*********************************/
 
-	// Use this for initialization
-	void Awake()
-	{
-		fixedRotation = transform.localRotation;
-		Debug.Log(fixedRotation);
-	}
-    
-	void Start()
-	{
-		lightRays = new List<LineRenderer>();
-		addLineRenderers();
-		setColor();
-		//target = GameObject.FindGameObjectWithTag("Player");
-	}
-	/*creates all the light renderers and sets them as children of the player (any parameter like tag, layer, etc, should be added here)*/
-	private void addLineRenderers()
-	{
-		for (int i = 0; i < rays_no; i++)
-		{
-			GameObject lineOBJ = new GameObject("lightRay " + i);
-			LineRenderer l = lineOBJ.AddComponent<LineRenderer>();
-			Material new_mat = Resources.Load<Material>("TranslucentColorMaterial");
-			//Material new_mat = new Material(Shader.Find("Transparent/Diffuse"));
-			l.renderer.material = new_mat;
-			//l.SetColors(Color.red, Color.red);
-			l.SetWidth(lineWidth, lineWidth);
-			l.transform.parent = transform;
-			lightRays.Add(l);
-		}
-	}
-	/*sets which collision layers should be ignored, based on the color of the player*/
-	void setIgnoredLayers()
-	{
-		/*switch (currentColor) {
-		case LightColor.GREEN:
-			Physics2D.IgnoreLayerCollision (LayerMask.NameToLayer ("Player"), LayerMask.NameToLayer ("GreenElement"), true);
-			Physics2D.IgnoreLayerCollision (LayerMask.NameToLayer ("Player"), LayerMask.NameToLayer ("RedElement"), false);
-			break;
-		case LightColor.RED:
-			Physics2D.IgnoreLayerCollision (LayerMask.NameToLayer ("Player"), LayerMask.NameToLayer ("GreenElement"), false);
-			Physics2D.IgnoreLayerCollision (LayerMask.NameToLayer ("Player"), LayerMask.NameToLayer ("RedElement"), true);
-			break;
-		}*/
-	}
-	/*changes the visual color of the line renderers*/
-	void setLineColor()
-	{
-        
-		for (int i = 0; i < lightRays.Count; i++)
-		{
+    // Use this for initialization
+    void Awake() {
+        fixedRotation = transform.localRotation;
+        Debug.Log(fixedRotation);
+    }
+
+    void Start() {
+        //color1 = LightColor;
+        //color1.a = 0;
+        collideLight = true;
+        lightRays = new List<LineRenderer>();
+        addLineRenderers();
+        setColor();
+        //target = GameObject.FindGameObjectWithTag("Player");
+    }
+    /*creates all the light renderers and sets them as children of the player (any parameter like tag, layer, etc, should be added here)*/
+    private void addLineRenderers() {
+        for (int i = 0; i < rays_no; i++) {
+            GameObject lineOBJ = new GameObject("lightRay " + i);
+            LineRenderer l = lineOBJ.AddComponent<LineRenderer>();
+            Material new_mat = Resources.Load<Material>("TranslucentColorMaterial");
+            //Material new_mat = new Material(Shader.Find("Transparent/Diffuse"));
+            l.renderer.material = new_mat;
+            //l.SetColors(Color.red, Color.red);
+            l.SetWidth(lineWidth, lineWidth);
+            l.transform.parent = transform;
+            lightRays.Add(l);
+        }
+    }
+    /*sets which collision layers should be ignored, based on the color of the player*/
+    void setIgnoredLayers() {
+        /*switch (currentColor) {
+        case LightColor.GREEN:
+            Physics2D.IgnoreLayerCollision (LayerMask.NameToLayer ("Player"), LayerMask.NameToLayer ("GreenElement"), true);
+            Physics2D.IgnoreLayerCollision (LayerMask.NameToLayer ("Player"), LayerMask.NameToLayer ("RedElement"), false);
+            break;
+        case LightColor.RED:
+            Physics2D.IgnoreLayerCollision (LayerMask.NameToLayer ("Player"), LayerMask.NameToLayer ("GreenElement"), false);
+            Physics2D.IgnoreLayerCollision (LayerMask.NameToLayer ("Player"), LayerMask.NameToLayer ("RedElement"), true);
+            break;
+        }*/
+    }
+    /*changes the visual color of the line renderers*/
+    void setLineColor() {
+
+        for (int i = 0; i < lightRays.Count; i++) {
 
 
-            lightRays[i].SetColors(color0, color1);    
-		}
-	}
+            lightRays[i].SetColors(LightColor, LightColor*AlphaToZero);
+        }
+    }
 
-	//Always call this function when the color is changed
-	void setColor()
-	{
-		setIgnoredLayers();
-		setLineColor();
-	}
-/***********************************************************/
+    //Always call this function when the color is changed
+    void setColor() {
+        setIgnoredLayers();
+        setLineColor();
+    }
+    /***********************************************************/
 
-	// Update is called once per frame
+    // Update is called once per frame
     void Update() {
         //transform.position = target.transform.position + Vector3.up * lightHeight;
 
@@ -107,8 +103,8 @@ public class PointLightScript : MonoBehaviour
         //        setColor(); 
         //    }
         //}
-	}
-	/*check if the player can currently change color (if it isnt inside a colored block)*/
+    }
+    /*check if the player can currently change color (if it isnt inside a colored block)*/
     //bool isInsideObject()
     //{
     //    switch (currentColor)
@@ -122,8 +118,7 @@ public class PointLightScript : MonoBehaviour
     //    }
     //}
 
-	void OnTriggerEnter2D(Collider2D col)
-	{
+    void OnTriggerEnter2D(Collider2D col) {
         //switch (col.tag)
         //{
         //    case "RedElement":
@@ -133,10 +128,9 @@ public class PointLightScript : MonoBehaviour
         //        greenBool = true;
         //        break;
         //}
-	}
+    }
 
-	void OnTriggerExit2D(Collider2D col)
-	{
+    void OnTriggerExit2D(Collider2D col) {
         //switch (col.tag)
         //{
         //    case "RedElement":
@@ -146,9 +140,9 @@ public class PointLightScript : MonoBehaviour
         //        greenBool = false;
         //        break;
         //}
-	}
+    }
 
-	/*has all functionality regarding the line renderers interaction*/
+    /*has all functionality regarding the line renderers interaction*/
     IEnumerator Illuminate() {
         //if (currentColor == LightColor.NONE)
         if (!canIlluminate) {
@@ -156,7 +150,7 @@ public class PointLightScript : MonoBehaviour
         }
         else {
             Vector3 firstRay = transform.up;
-            Dictionary<GameObject, int> sprites_dictionary = new Dictionary<GameObject, int>();
+            Dictionary<GameObject, Color> sprites_dictionary = new Dictionary<GameObject, Color>();
             //ArrayList hitObjs = new ArrayList();
             for (int i = 0; i < lightRays.Count; i++) {
 
@@ -167,16 +161,16 @@ public class PointLightScript : MonoBehaviour
                 Vector3 dest = RotatePointAroundPivot(firstRay, Vector3.zero, (360.0f / rays_no) * i);
                 lightRay.SetPosition(0, transform.position);
                 lightRay.SetPosition(1, transform.position + lightDist * dest);
-                lightRay.SetColors(color0, color1);
+                lightRay.SetColors(LightColor, LightColor*AlphaToZero);
 
                 LayerMask l = defineLayerMask();
 
                 //hitVec = Physics2D.RaycastAll(transform.position, dest, lightDist, l);
-                
+
                 //Fase 2: Check light colisions and calculate each new light ray distance
 
                 if (collideLight) {
-                    RecalculateLightRays(lightRay, dest, l,sprites_dictionary);
+                    RecalculateLightRays(lightRay, dest, l, sprites_dictionary);
                 }
             }
 
@@ -189,15 +183,18 @@ public class PointLightScript : MonoBehaviour
         yield return null;
     }
 
-    private void spritesIlluminate(Dictionary<GameObject, int> sprites_dictionary) {
-        foreach (KeyValuePair<GameObject, int> entry in sprites_dictionary) {
+    private void spritesIlluminate(Dictionary<GameObject, Color> sprites_dictionary) {
+        foreach (KeyValuePair<GameObject, Color> entry in sprites_dictionary) {
             if (entry.Key.GetComponent<SpriteIllumination>() != null) {
-                entry.Key.SendMessage("SetIllumination", entry.Value);                
+                SpriteIllumination.LightSourceInfo info = new SpriteIllumination.LightSourceInfo();
+                info.lightcolor = LightColor;
+                info.alpha = entry.Value;
+                entry.Key.SendMessage("SetIllumination", info);
             }
         }
     }
 
-    private void RecalculateLightRays(LineRenderer lightRay, Vector3 dest, LayerMask l,Dictionary<GameObject, int> dictionary) {
+    private void RecalculateLightRays(LineRenderer lightRay, Vector3 dest, LayerMask l, Dictionary<GameObject, Color> dictionary) {
         RaycastHit2D hit;
 
         hit = Physics2D.Raycast(transform.position, dest, lightDist, l);
@@ -205,8 +202,9 @@ public class PointLightScript : MonoBehaviour
         if (hit.collider != null) {
             lightRay.SetPosition(1, hit.point);
             //print(hit.collider.gameObject.name);
-            lightRay.SetColors(color0, calculateAlpha(hit.point));
-            AddToHash(dictionary, hit.collider.gameObject);
+            Color alpha = calculateAlpha(hit.point);
+            lightRay.SetColors(LightColor, alpha);
+            AddToHash(dictionary, hit.collider.gameObject, alpha);
         }
         else {
             //lightRay.SetColors(color0, color1);
@@ -215,29 +213,27 @@ public class PointLightScript : MonoBehaviour
         }
     }
 
-    private void AddToHash(Dictionary<GameObject, int> dictionary, GameObject gameObject) {
-        if (dictionary.ContainsKey(gameObject)) {
-            dictionary[gameObject]++;
+    private void AddToHash(Dictionary<GameObject, Color> dictionary, GameObject gameObject, Color c) {
+        if (!dictionary.ContainsKey(gameObject)) {
+            dictionary.Add(gameObject, c);
+
         }
         else {
-            dictionary.Add(gameObject, 1);
         }
     }
 
-	/*function used to define with which layers should the line renderer rays collide*/
-	LayerMask defineLayerMask()
-	{
+    /*function used to define with which layers should the line renderer rays collide*/
+    LayerMask defineLayerMask() {
         return ~(1 << LayerMask.NameToLayer("LightSource"));
-	}
-    
-	/*no idea*/
-	Vector3 RotatePointAroundPivot(Vector3 point, Vector3 pivot, float angle)
-	{
-		Vector3 dir = point - pivot; // get point direction relative to pivot
-		Quaternion q = Quaternion.AngleAxis(angle, Vector3.forward);
-		dir = q * dir; // rotate it
-		return dir; // return it
-	}
+    }
+
+    /*no idea*/
+    Vector3 RotatePointAroundPivot(Vector3 point, Vector3 pivot, float angle) {
+        Vector3 dir = point - pivot; // get point direction relative to pivot
+        Quaternion q = Quaternion.AngleAxis(angle, Vector3.forward);
+        dir = q * dir; // rotate it
+        return dir; // return it
+    }
 
 
 
@@ -267,10 +263,9 @@ public class PointLightScript : MonoBehaviour
     //    }
     //}
 
-	Color calculateAlpha(Vector2 point)
-	{
-		float d = Vector2.Distance(transform.position, point);
-		float alph = color0.a - map(d, 0, lightDist, 0, color0.a);
+    Color calculateAlpha(Vector2 point) {
+        float d = Vector2.Distance(transform.position, point);
+        float alph = LightColor.a - map(d, 0, lightDist, 0, LightColor.a);
 
         //switch (currentColor)
         //{wd
@@ -281,15 +276,13 @@ public class PointLightScript : MonoBehaviour
         //    default:
         //        return Color.black;
         //}
-        Color c = color1;
+        Color c = LightColor*AlphaToZero;
         c.a = alph;
         return c;
-	}
+    }
 
-	float map(float s, float a1, float a2, float b1, float b2)
-	{
-		return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
-	}
+    float map(float s, float a1, float a2, float b1, float b2) {
+        return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
+    }
 
-    public bool collideLight { get; set; }
 }
