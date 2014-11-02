@@ -2,19 +2,19 @@
 using System.Collections;
 using System.Collections.Generic;
 
+[System.Serializable]
 public class LightSourceScript : MonoBehaviour {
     /**************************VARIABLEs*********************************/
     Quaternion fixedRotation;
     //GameObject target;
     List<LineRenderer> lightRays;
-    public int rays_no;
+    public int NumberOfLightRays;
     public float LightRayMagnitude;
     private float lightdist;
 
     public Color LightColor;
     private Color AlphaToZero = new Color(1,1,1,0);
 
-    public Material line_mat;
 
     public float alph = 1f;
 
@@ -24,10 +24,10 @@ public class LightSourceScript : MonoBehaviour {
     public int LightConeAngle;
 
 
-    public bool LightFlickr;
+    public bool LightWobble;
+    public float LightWobbleRange;
     private float random;
     private float LightFlickrAux;
-    public float LightFlickrOffSetRange { get; set; }
 
     /***********************************************************/
 
@@ -42,20 +42,21 @@ public class LightSourceScript : MonoBehaviour {
     void Start() {
         //color1 = LightColor;
         //color1.a = 0;
+        lightdist = LightRayMagnitude;
         collideLight = true;
         lightRays = new List<LineRenderer>();
         addLineRenderers();
         setColor();
         //target = GameObject.FindGameObjectWithTag("Player");
-        if (LightFlickr) {
+        if (LightWobble) {
             random = Random.Range(0f, 100f);
             LightFlickrAux = LightRayMagnitude;
-            LightFlickrOffSetRange = 1.5f;
+            LightWobbleRange = 1.5f;
         }
     }
     /*creates all the light renderers and sets them as children of the player (any parameter like tag, layer, etc, should be added here)*/
     private void addLineRenderers() {
-        for (int i = 0; i < rays_no; i++) {
+        for (int i = 0; i < NumberOfLightRays; i++) {
             GameObject lineOBJ = new GameObject("lightRay " + i);
             LineRenderer l = lineOBJ.AddComponent<LineRenderer>();
             Material new_mat = Resources.Load<Material>("TranslucentColorMaterial");
@@ -67,19 +68,7 @@ public class LightSourceScript : MonoBehaviour {
             lightRays.Add(l);
         }
     }
-    /*sets which collision layers should be ignored, based on the color of the player*/
-    void setIgnoredLayers() {
-        /*switch (currentColor) {
-        case LightColor.GREEN:
-            Physics2D.IgnoreLayerCollision (LayerMask.NameToLayer ("Player"), LayerMask.NameToLayer ("GreenElement"), true);
-            Physics2D.IgnoreLayerCollision (LayerMask.NameToLayer ("Player"), LayerMask.NameToLayer ("RedElement"), false);
-            break;
-        case LightColor.RED:
-            Physics2D.IgnoreLayerCollision (LayerMask.NameToLayer ("Player"), LayerMask.NameToLayer ("GreenElement"), false);
-            Physics2D.IgnoreLayerCollision (LayerMask.NameToLayer ("Player"), LayerMask.NameToLayer ("RedElement"), true);
-            break;
-        }*/
-    }
+  
     /*changes the visual color of the line renderers*/
     void setLineColor() {
 
@@ -92,7 +81,6 @@ public class LightSourceScript : MonoBehaviour {
 
     //Always call this function when the color is changed
     void setColor() {
-        setIgnoredLayers();
         setLineColor();
     }
     /***********************************************************/
@@ -106,9 +94,12 @@ public class LightSourceScript : MonoBehaviour {
 
         StartCoroutine("Illuminate");
 
-        if (LightFlickr) {
+        if (LightWobble) {
             float noise = Mathf.PerlinNoise(random, Time.time);
-            lightdist = Mathf.Lerp(LightRayMagnitude - LightFlickrOffSetRange, LightRayMagnitude + LightFlickrOffSetRange, noise);
+            lightdist = Mathf.Lerp(LightRayMagnitude - LightWobbleRange, LightRayMagnitude + LightWobbleRange, noise);
+        }
+        else {
+            lightdist = LightRayMagnitude;
         }
 
     }
@@ -135,7 +126,7 @@ public class LightSourceScript : MonoBehaviour {
 
                 LineRenderer lightRay = lightRays[i];
                 lightRay.SetVertexCount(2);
-                Vector3 dest = RotatePointAroundPivot(firstRay, Vector3.zero, ((float)LightConeAngle / rays_no) * i);
+                Vector3 dest = RotatePointAroundPivot(firstRay, Vector3.zero, ((float)LightConeAngle / NumberOfLightRays) * i);
                 lightRay.SetPosition(0, transform.position);
                 lightRay.SetPosition(1, transform.position + lightdist * dest);
                 lightRay.SetColors(LightColor, LightColor*AlphaToZero);

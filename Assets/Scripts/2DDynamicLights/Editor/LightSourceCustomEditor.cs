@@ -1,18 +1,21 @@
 ﻿using UnityEngine;
-using UnityEditor; 
-using System.Collections;
+//using UnityEditor; 
+//using System.Collections;
 
-[CustomEditor (typeof(LightSourceScript))]
-public class LightSourceCustomEditor : Editor {
+//[CustomEditor (typeof(LightSourceScript))]
+//public class LightSourceCustomEditor : Editor {
 
-    public override void OnInspectorGUI() {
-        base.OnInspectorGUI();
-        LightSourceScript myLightSourceScript = (LightSourceScript) target;
+//    private float range;
 
-        if (myLightSourceScript.LightFlickr) {
-            myLightSourceScript.LightFlickrOffSetRange = EditorGUILayout.FloatField("Range", myLightSourceScript.LightFlickrOffSetRange);
-        }
+//    public override void OnInspectorGUI() {
 
-    }
+//        base.OnInspectorGUI();
+//        //LightSourceScript myLightSourceScript = (LightSourceScript) target;
 
-}
+//        //if (myLightSourceScript.LightWobble) {
+//        //    range = EditorGUILayout.FloatField("Range", range);
+//        //}
+
+//    }
+
+//}
