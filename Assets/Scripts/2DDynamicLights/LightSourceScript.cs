@@ -8,7 +8,8 @@ public class LightSourceScript : MonoBehaviour {
     //GameObject target;
     List<LineRenderer> lightRays;
     public int rays_no;
-    public float lightDist;
+    public float LightRayMagnitude;
+    private float lightdist;
 
     public Color LightColor;
     private Color AlphaToZero = new Color(1,1,1,0);
@@ -21,6 +22,12 @@ public class LightSourceScript : MonoBehaviour {
     private bool canIlluminate = true;
     public bool collideLight;
     public int LightConeAngle;
+
+
+    public bool LightFlickr;
+    private float random;
+    private float LightFlickrAux;
+    public float LightFlickrOffSetRange { get; set; }
 
     /***********************************************************/
 
@@ -40,6 +47,11 @@ public class LightSourceScript : MonoBehaviour {
         addLineRenderers();
         setColor();
         //target = GameObject.FindGameObjectWithTag("Player");
+        if (LightFlickr) {
+            random = Random.Range(0f, 100f);
+            LightFlickrAux = LightRayMagnitude;
+            LightFlickrOffSetRange = 1.5f;
+        }
     }
     /*creates all the light renderers and sets them as children of the player (any parameter like tag, layer, etc, should be added here)*/
     private void addLineRenderers() {
@@ -94,6 +106,11 @@ public class LightSourceScript : MonoBehaviour {
 
         StartCoroutine("Illuminate");
 
+        if (LightFlickr) {
+            float noise = Mathf.PerlinNoise(random, Time.time);
+            lightdist = Mathf.Lerp(LightRayMagnitude - LightFlickrOffSetRange, LightRayMagnitude + LightFlickrOffSetRange, noise);
+        }
+
     }
 
     void OnTriggerEnter2D(Collider2D col) {
@@ -120,7 +137,7 @@ public class LightSourceScript : MonoBehaviour {
                 lightRay.SetVertexCount(2);
                 Vector3 dest = RotatePointAroundPivot(firstRay, Vector3.zero, ((float)LightConeAngle / rays_no) * i);
                 lightRay.SetPosition(0, transform.position);
-                lightRay.SetPosition(1, transform.position + lightDist * dest);
+                lightRay.SetPosition(1, transform.position + lightdist * dest);
                 lightRay.SetColors(LightColor, LightColor*AlphaToZero);
 
                 LayerMask l = defineLayerMask();
@@ -155,7 +172,7 @@ public class LightSourceScript : MonoBehaviour {
     private void RecalculateLightRays(LineRenderer lightRay, Vector3 dest, LayerMask l, Dictionary<GameObject, Color> dictionary) {
         RaycastHit2D hit;
 
-        hit = Physics2D.Raycast(transform.position, dest, lightDist, l);
+        hit = Physics2D.Raycast(transform.position, dest, lightdist, l);
 
         if (hit.collider != null) {
             lightRay.SetPosition(1, hit.point);
@@ -167,7 +184,7 @@ public class LightSourceScript : MonoBehaviour {
         else {
             //lightRay.SetColors(color0, color1);
             //lightRay.SetColors(getCurrentColor(), calculateAlpha(hit.point));
-            lightRay.SetPosition(1, transform.position + lightDist * dest);
+            lightRay.SetPosition(1, transform.position + lightdist * dest);
         }
     }
 
@@ -194,7 +211,7 @@ public class LightSourceScript : MonoBehaviour {
 
     Color calculateAlpha(Vector2 point) {
         float d = Vector2.Distance(transform.position, point);
-        float alph = LightColor.a - map(d, 0, lightDist, 0, LightColor.a);
+        float alph = LightColor.a - map(d, 0, lightdist, 0, LightColor.a);
         Color c = LightColor*AlphaToZero;
         c.a = alph;
         return c;
@@ -203,5 +220,6 @@ public class LightSourceScript : MonoBehaviour {
     float map(float s, float a1, float a2, float b1, float b2) {
         return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
     }
+
 
 }

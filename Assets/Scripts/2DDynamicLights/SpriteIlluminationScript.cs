@@ -42,7 +42,7 @@ public class SpriteIlluminationScript : MonoBehaviour {
 
         //float new_alpha = intensity / 255f;
         CancelInvoke("ResetNewColor");
-        newColor = OriginalColor * info.lightcolor;
+        newColor = (OriginalColor * info.lightcolor)/2f; //only works with one light source
         newColor.a = map(info.alpha.a, 0, info.lightcolor.a, 0, 1);
         Invoke("ResetNewColor", .3f);
         
